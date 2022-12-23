@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>Animal Details</h1>
+
+<div class="row">
+  <div class="col s6">
+    <div class="card">
+      <div class="card-content">
+    <span class="card-title">{{ animal.name }}</span>
+    <p>Animal: {{ animal.animal }}</p>
+    <p>Breed: {{ animal.breed }}</p>
+    <p>Description: {{ animal.description }}</p>
+    <p>Age: {{ animal.age }}</p>
+  </div>
+  <div class="card-action">
+  <a href="{% url 'animals_update' animal.id %}">Edit</a>
+  <a href="{% url 'animals_delete' animal.id %}">Delete</a>
+</div>
+</div>
+</div>
+<div class="col s6">
+  <form action="{% url 'add_feeding' animal.id %}" method="POST">
+    {% csrf_token %}
+    {{ feeding_form.as_p }}
+    <input type="submit" class="btn" value="Add Feeding">
+  </form>
+  <br>
+    {% if animal.fed_for_today %}
+      <div class="card-panel teal-text center-align">{{animal.name}} has been fed all meals for today</div>
+    {% else %}
+      <div class="card-panel red-text center-align">{{animal.name}} might be hungry</div>
+    {% endif %}
+<table class="striped">
+  <thead>
+    <tr><th>Date</th><th>Meal</th></tr>
+  </thead>
+  <tbody>
+    {% for feeding in animal.feeding_set.all %}
+      <tr>
+        <td>{{feeding.date}}</td>
+        <td>{{feeding.get_meal_display}}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+</div>
+
+<hr>
+<div class="row">
+  <div class="col s6">
+    <h3>{{ animal.name }}'s Clothes</h3>
+    {% if animal.clothes.count %}
+      {% for clothes in animal.clothes.all %}
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">
+              A <span style="color: {{ clothes.color }}">{{ clothes.color }}</span> {{ clothes.name }}
+            </span>
+          </div>
+          <div class="card-action">
+            <form action="{% url 'unassoc_clothes' animal.id clothes.id %}" method="POST">
+              {% csrf_token %}
+              <button type="submit" class="btn">Remove</button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <h5>No clothes :(</h5>
+    {% endif %}
+  </div>
+
+  <div class="col s6">
+    <h3>Available Clothes</h3>
+    {% if clothes.count %}
+      {% for c in clothes.all %}
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">
+              A <span style="color: {{ c.color }}">{{ c.color }}</span> {{ c.name }}
+            </span>
+          </div>
+          <div class="card-action">
+            <form action="{% url 'assoc_clothes' animal.id c.id %}" method="POST">
+                {% csrf_token %}
+              <button type="submit" class="btn">Add</button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <h5>{{animal.name}} Already Has All Clothes Available</h5>
+    {% endif %}
+  </div>
+
+<script>
+  const dateEl = document.getElementById('id_date');
+  M.Datepicker.init(dateEl, {
+    format: 'yyyy-mm-dd',
+    defaultDate: new Date(),
+    setDefaultDate: true,
+    autoClose: true
+  });
+
+  // add additional JS to initialize select below
+  const selectEl = document.getElementById('id_meal');
+  M.FormSelect.init(selectEl);
+</script>
+{% endblock %}
